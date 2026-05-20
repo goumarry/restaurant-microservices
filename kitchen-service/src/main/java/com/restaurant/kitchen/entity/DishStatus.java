@@ -1,0 +1,5 @@
+package com.restaurant.kitchen.entity;
+
+public enum DishStatus {
+    PENDING, IN_PROGRESS, READY
+}

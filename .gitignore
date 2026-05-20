@@ -1,0 +1,20 @@
+# Maven
+**/target/
+**/*.class
+**/*.jar
+
+# Node
+**/node_modules/
+**/dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Spring Boot
+**/application-local.yml

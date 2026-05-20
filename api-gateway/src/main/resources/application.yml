@@ -1,0 +1,49 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://frontend"
+            allowedMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+            allowedHeaders: ["*"]
+            allowCredentials: false
+      routes:
+        - id: client-auth
+          uri: ${CLIENT_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/auth/**
+
+        - id: client-users
+          uri: ${CLIENT_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/users/**
+
+        - id: order-service
+          uri: ${ORDER_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/orders/**
+
+        - id: kitchen-service
+          uri: ${KITCHEN_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/kitchen/**
+
+        - id: delivery-service
+          uri: ${DELIVERY_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/deliveries/**
+
+jwt:
+  secret: ${JWT_SECRET:ThisIsAVerySecretKeyForJWTSigningMin32Chars!}
+
+logging:
+  level:
+    com.restaurant.gateway: DEBUG
