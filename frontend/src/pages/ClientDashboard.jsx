@@ -2,44 +2,45 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createOrder, getMyOrders } from '../api.js'
 
-const MENU = [
-  { id: 1, name: 'Burger Maison', price: 12.99 },
-  { id: 2, name: 'Pizza Margherita', price: 10.99 },
-  { id: 3, name: 'Salade César', price: 8.99 },
-  { id: 4, name: 'Spaghetti Bolognaise', price: 11.99 },
-  { id: 5, name: 'Entrecôte frites', price: 18.99 },
-  { id: 6, name: 'Tiramisu', price: 6.99 },
-]
-
-const STATUS_COLORS = {
-  PENDING: '#ffa726', PREPARING: '#42a5f5', READY: '#66bb6a',
-  DELIVERING: '#ab47bc', DELIVERED: '#78909c', CANCELLED: '#ef5350'
+const C = {
+  paper: '#efe6d6', card: '#fffdf7', ink: '#2b211a', sub: '#8c7e6d',
+  line: '#e7ddca', terra: '#c2562f', cream: '#f6efe1', espresso: '#2b211a',
 }
+
 const STATUS_LABELS = {
   PENDING: 'En attente', PREPARING: 'En préparation', READY: 'Prêt',
-  DELIVERING: 'En livraison', DELIVERED: 'Livré', CANCELLED: 'Annulé'
+  DELIVERING: 'En livraison', DELIVERED: 'Livré', CANCELLED: 'Annulé',
+}
+const STATUS_COLORS = {
+  PENDING:   { fg: '#a9651c', bg: '#f4e3c6' },
+  PREPARING: { fg: '#39658f', bg: '#dde8f1' },
+  READY:     { fg: '#566f2f', bg: '#e3ead0' },
+  DELIVERING:{ fg: '#6c4a7e', bg: '#e9dff0' },
+  DELIVERED: { fg: '#8a7c6a', bg: '#ebe2d2' },
+  CANCELLED: { fg: '#a83a26', bg: '#f2dcd5' },
 }
 
-const s = {
-  page: { minHeight: '100vh', background: '#f5f5f5' },
-  nav: { background: '#1a1a2e', color: '#fff', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  navTitle: { fontSize: 20, fontWeight: 700 },
-  logoutBtn: { background: 'transparent', border: '1px solid rgba(255,255,255,0.4)', color: '#fff', padding: '6px 16px', borderRadius: 6, cursor: 'pointer' },
-  container: { maxWidth: 1100, margin: '0 auto', padding: 32 },
-  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 },
-  section: { background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
-  sectionTitle: { fontSize: 18, fontWeight: 700, marginBottom: 20, color: '#1a1a2e' },
-  menuItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f0f0f0' },
-  itemName: { fontWeight: 500 },
-  itemPrice: { color: '#ff6b35', fontWeight: 700 },
-  addBtn: { background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 14px', cursor: 'pointer', fontWeight: 600 },
-  cartItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f5f5f5' },
-  removeBtn: { background: '#ef5350', color: '#fff', border: 'none', borderRadius: 4, padding: '2px 8px', cursor: 'pointer' },
-  total: { textAlign: 'right', fontWeight: 700, fontSize: 18, marginTop: 16, color: '#1a1a2e' },
-  orderBtn: { width: '100%', padding: 14, background: '#1a1a2e', color: '#fff', border: 'none', borderRadius: 8, fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 16 },
-  orderCard: { border: '1px solid #e0e0e0', borderRadius: 8, padding: 16, marginBottom: 12 },
-  badge: (status) => ({ display: 'inline-block', padding: '2px 10px', borderRadius: 12, background: STATUS_COLORS[status] || '#ccc', color: '#fff', fontSize: 12, fontWeight: 700 }),
-  empty: { color: '#aaa', textAlign: 'center', padding: 24 }
+const MENU = [
+  { id: 1, name: 'Burger Maison',        desc: 'Bœuf, cheddar affiné, oignons confits',  price: 12.99 },
+  { id: 2, name: 'Pizza Margherita',     desc: 'Mozzarella di bufala, basilic frais',      price: 10.99 },
+  { id: 3, name: 'Salade César',         desc: 'Poulet rôti, parmesan, croûtons',          price: 8.99  },
+  { id: 4, name: 'Spaghetti Bolognaise', desc: 'Sauce mijotée 6h, parmesan',               price: 11.99 },
+  { id: 5, name: 'Entrecôte frites',     desc: "300g, beurre maître d'hôtel",              price: 18.99 },
+  { id: 6, name: 'Tiramisu',             desc: 'Mascarpone, café, cacao amer',             price: 6.99  },
+]
+
+const Badge = ({ status }) => {
+  const col = STATUS_COLORS[status] || { fg: '#8a7c6a', bg: '#ebe2d2' }
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px',
+      borderRadius: 999, fontSize: 12.5, fontWeight: 600, letterSpacing: .2, whiteSpace: 'nowrap',
+      color: col.fg, background: col.bg,
+    }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', opacity: .85, flexShrink: 0 }} />
+      {STATUS_LABELS[status] || status}
+    </span>
+  )
 }
 
 export default function ClientDashboard() {
@@ -79,80 +80,99 @@ export default function ClientDashboard() {
   const logout = () => { localStorage.clear(); navigate('/login') }
 
   return (
-    <div style={s.page}>
-      <nav style={s.nav}>
-        <span style={s.navTitle}>🍽 Restaurant — Client</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ opacity: 0.8 }}>{user.email}</span>
-          <button style={s.logoutBtn} onClick={logout}>Déconnexion</button>
+    <div style={{ minHeight: '100vh', background: C.paper, fontFamily: "'Archivo', system-ui, sans-serif", display: 'flex', flexDirection: 'column' }}>
+      {/* nav */}
+      <div style={{ height: 74, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', background: C.espresso, color: C.cream }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: "'Spectral', Georgia, serif", fontSize: 26, fontWeight: 600, letterSpacing: .3 }}>
+          <span style={{ width: 11, height: 11, borderRadius: '50%', background: C.terra, display: 'inline-block' }} />
+          Maison
         </div>
-      </nav>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 14 }}>
+          <span style={{ opacity: .82 }}>{user.email}</span>
+          <button onClick={logout} style={{ padding: '9px 18px', borderRadius: 999, border: '1px solid rgba(255,255,255,.28)', background: 'transparent', color: C.cream, fontFamily: 'inherit', fontSize: 13, cursor: 'pointer' }}>Déconnexion</button>
+        </div>
+      </div>
 
-      <div style={s.container}>
-        {msg && <div style={{ background: '#e8f5e9', color: '#2e7d32', padding: 12, borderRadius: 8, marginBottom: 20, fontWeight: 600 }}>{msg}</div>}
-        <div style={s.grid}>
-          {/* Menu */}
-          <div>
-            <div style={s.section}>
-              <h2 style={s.sectionTitle}>Menu</h2>
-              {MENU.map(dish => (
-                <div key={dish.id} style={s.menuItem}>
-                  <span style={s.itemName}>{dish.name}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={s.itemPrice}>{dish.price.toFixed(2)} €</span>
-                    <button style={s.addBtn} onClick={() => addToCart(dish)}>+</button>
+      {msg && (
+        <div style={{ background: '#e3ead0', color: '#566f2f', padding: '12px 40px', fontWeight: 600, fontSize: 14 }}>{msg}</div>
+      )}
+
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 26, padding: 28 }}>
+        {/* left */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <section>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: C.terra, marginBottom: 4 }}>La carte</div>
+            <h2 style={{ fontFamily: "'Spectral', Georgia, serif", fontSize: 27, fontWeight: 600, margin: '0 0 16px', color: C.ink }}>Notre menu du jour</h2>
+            <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 16, overflow: 'hidden' }}>
+              {MENU.map((d, i) => (
+                <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '13px 18px', borderTop: i ? `1px solid ${C.line}` : 'none' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: "'Spectral', Georgia, serif", fontSize: 17.5, fontWeight: 600 }}>{d.name}</div>
+                    <div style={{ fontSize: 12.5, color: C.sub, marginTop: 2 }}>{d.desc}</div>
                   </div>
+                  <div style={{ fontFamily: "'Spectral', Georgia, serif", fontSize: 18, fontWeight: 700, color: C.terra, whiteSpace: 'nowrap' }}>{d.price.toFixed(2).replace('.', ',')} €</div>
+                  <button onClick={() => addToCart(d)} style={{ width: 38, height: 38, borderRadius: 10, border: `1.5px solid ${C.line}`, background: C.cream, color: C.terra, fontSize: 22, lineHeight: 1, cursor: 'pointer', fontFamily: "'Spectral', serif", flexShrink: 0 }}>+</button>
                 </div>
               ))}
             </div>
+          </section>
 
-            {/* Panier */}
-            <div style={{ ...s.section, marginTop: 24 }}>
-              <h2 style={s.sectionTitle}>Panier {cart.length > 0 && `(${cart.length})`}</h2>
-              {cart.length === 0
-                ? <p style={s.empty}>Votre panier est vide</p>
-                : cart.map(item => (
-                  <div key={item.name} style={s.cartItem}>
-                    <span>{item.qty}× {item.name}</span>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <span style={{ fontWeight: 700 }}>{(item.price * item.qty).toFixed(2)} €</span>
-                      <button style={s.removeBtn} onClick={() => removeFromCart(item.name)}>✕</button>
-                    </div>
-                  </div>
-                ))
-              }
-              {cart.length > 0 && (
+          <section>
+            <h3 style={{ fontFamily: "'Spectral', Georgia, serif", fontSize: 20, fontWeight: 600, margin: '0 0 12px', color: C.ink }}>
+              Mon panier {cart.length > 0 && `(${cart.length})`}
+            </h3>
+            <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+              {cart.length === 0 ? (
+                <p style={{ color: C.sub, textAlign: 'center', padding: '16px 0', fontSize: 14 }}>Votre panier est vide</p>
+              ) : (
                 <>
-                  <div style={s.total}>Total : {total.toFixed(2)} €</div>
-                  <button style={s.orderBtn} onClick={placeOrder}>Passer la commande</button>
+                  {cart.map(item => (
+                    <div key={item.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderBottom: `1px solid ${C.line}` }}>
+                      <div style={{ fontSize: 14.5 }}>
+                        <b style={{ color: C.terra }}>{item.qty}×</b>&nbsp;{item.name}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <span style={{ fontFamily: "'Spectral', serif", fontWeight: 600 }}>{(item.price * item.qty).toFixed(2).replace('.', ',')} €</span>
+                        <span onClick={() => removeFromCart(item.name)} style={{ color: C.sub, cursor: 'pointer', fontSize: 18 }}>×</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '15px 0 16px' }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: C.sub }}>Total</span>
+                    <span style={{ fontFamily: "'Spectral', serif", fontSize: 25, fontWeight: 700 }}>{total.toFixed(2).replace('.', ',')} €</span>
+                  </div>
+                  <button onClick={placeOrder} style={{ width: '100%', padding: 14, background: C.espresso, color: C.cream, border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                    Passer la commande
+                  </button>
                 </>
               )}
             </div>
-          </div>
+          </section>
+        </div>
 
-          {/* Mes commandes */}
-          <div style={s.section}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h2 style={{ ...s.sectionTitle, marginBottom: 0 }}>Mes commandes</h2>
-              <button onClick={loadOrders} style={{ background: 'none', border: '1px solid #ddd', borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}>↻ Actualiser</button>
-            </div>
-            {orders.length === 0
-              ? <p style={s.empty}>Aucune commande</p>
-              : orders.map(order => (
-                <div key={order.id} style={s.orderCard}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <strong>Commande #{order.id}</strong>
-                    <span style={s.badge(order.status)}>{STATUS_LABELS[order.status] || order.status}</span>
-                  </div>
-                  <div style={{ fontSize: 13, color: '#666' }}>
-                    {order.items?.map(i => `${i.quantity}× ${i.dishName}`).join(', ')}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#999', marginTop: 6 }}>
-                    {new Date(order.createdAt).toLocaleString('fr-FR')}
-                  </div>
+        {/* right */}
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <h3 style={{ fontFamily: "'Spectral', Georgia, serif", fontSize: 20, fontWeight: 600, margin: 0, color: C.ink }}>Mes commandes</h3>
+            <button onClick={loadOrders} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 15px', borderRadius: 999, border: `1px solid ${C.line}`, background: C.card, color: C.ink, fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>↻ Actualiser</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {orders.length === 0 ? (
+              <p style={{ color: C.sub, textAlign: 'center', padding: 32, background: C.card, border: `1px solid ${C.line}`, borderRadius: 16 }}>Aucune commande</p>
+            ) : orders.map(order => (
+              <div key={order.id} style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: 16, padding: '16px 18px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
+                  <span style={{ fontFamily: "'Spectral', serif", fontSize: 18, fontWeight: 700 }}>Commande #{order.id}</span>
+                  <Badge status={order.status} />
                 </div>
-              ))
-            }
+                <div style={{ fontSize: 13.5, color: C.ink, opacity: .85 }}>
+                  {order.items?.map(i => `${i.quantity}× ${i.dishName}`).join(', ')}
+                </div>
+                <div style={{ fontSize: 12.5, color: C.sub, marginTop: 7 }}>
+                  {new Date(order.createdAt).toLocaleString('fr-FR')}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

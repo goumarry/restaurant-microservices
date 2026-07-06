@@ -9,8 +9,14 @@ const headers = () => ({
 
 const handle = async (res) => {
   if (!res.ok) {
-    const text = await res.text()
-    throw new Error(text || res.statusText)
+    let message
+    try {
+      const data = await res.json()
+      message = data.message || data.error || res.statusText
+    } catch {
+      message = res.statusText
+    }
+    throw new Error(message)
   }
   return res.json()
 }

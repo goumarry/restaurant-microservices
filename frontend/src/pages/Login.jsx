@@ -2,18 +2,16 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { login, register } from '../api.js'
 
-const s = {
-  page: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1a1a2e' },
-  card: { background: '#fff', borderRadius: 12, padding: 40, width: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
-  title: { textAlign: 'center', marginBottom: 24, fontSize: 24, fontWeight: 700, color: '#1a1a2e' },
-  tabs: { display: 'flex', marginBottom: 24, borderRadius: 8, overflow: 'hidden', border: '1px solid #e0e0e0' },
-  tab: (active) => ({ flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer', fontWeight: 600, background: active ? '#ff6b35' : '#fff', color: active ? '#fff' : '#666' }),
-  field: { marginBottom: 16 },
-  label: { display: 'block', marginBottom: 6, fontWeight: 600, fontSize: 14, color: '#555' },
-  input: { width: '100%', padding: '10px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14, outline: 'none' },
-  select: { width: '100%', padding: '10px 14px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14, background: '#fff' },
-  btn: { width: '100%', padding: '12px', background: '#ff6b35', color: '#fff', border: 'none', borderRadius: 8, fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 8 },
-  error: { color: '#e53935', fontSize: 13, marginTop: 12, textAlign: 'center' }
+const C = {
+  card: '#fffdf7', ink: '#2b211a', sub: '#8c7e6d',
+  line: '#e7ddca', terra: '#c2562f', terraDk: '#9c3f1f', cream: '#f6efe1',
+  espresso: '#2b211a',
+}
+
+const inputStyle = {
+  width: '100%', padding: '13px 15px', borderRadius: 11, border: `1.5px solid ${C.line}`,
+  background: C.cream, fontSize: 15, color: C.ink, outline: 'none',
+  fontFamily: "'Archivo', system-ui, sans-serif", boxSizing: 'border-box',
 }
 
 export default function Login() {
@@ -28,12 +26,9 @@ export default function Login() {
     e.preventDefault()
     setError('')
     try {
-      let data
-      if (mode === 'login') {
-        data = await login(email, password)
-      } else {
-        data = await register(email, password, role)
-      }
+      const data = mode === 'login'
+        ? await login(email, password)
+        : await register(email, password, role)
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify({ id: data.id, email: data.email, role: data.role }))
       if (data.role === 'CLIENT') navigate('/client')
@@ -44,36 +39,101 @@ export default function Login() {
     }
   }
 
+  const roles = [['CLIENT', 'Client'], ['CHEF', 'Chef cuisinier'], ['LIVREUR', 'Livreur']]
+
   return (
-    <div style={s.page}>
-      <div style={s.card}>
-        <h1 style={s.title}>🍽 Restaurant</h1>
-        <div style={s.tabs}>
-          <button style={s.tab(mode === 'login')} onClick={() => setMode('login')}>Connexion</button>
-          <button style={s.tab(mode === 'register')} onClick={() => setMode('register')}>Inscription</button>
+    <div style={{
+      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: "'Archivo', system-ui, sans-serif",
+      background: `radial-gradient(circle at 30% 20%, #3a2c22, ${C.espresso} 70%)`,
+      position: 'relative',
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0, opacity: .5,
+        backgroundImage: 'repeating-linear-gradient(135deg,rgba(255,255,255,.012) 0 2px,transparent 2px 7px)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{ position: 'relative', width: 452 }}>
+        <div style={{ textAlign: 'center', marginBottom: 26, color: C.cream }}>
+          <div style={{ fontFamily: "'Spectral', Georgia, serif", fontSize: 40, fontWeight: 600, letterSpacing: .5 }}>
+            <span style={{ color: C.terra }}>·</span> Maison
+          </div>
+          <div style={{ fontSize: 13.5, letterSpacing: 3, textTransform: 'uppercase', opacity: .6, marginTop: 4 }}>
+            Commande & Cuisine
+          </div>
         </div>
-        <form onSubmit={submit}>
-          <div style={s.field}>
-            <label style={s.label}>Email</label>
-            <input style={s.input} type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+
+        <div style={{
+          background: C.card, border: `1px solid ${C.line}`, borderRadius: 22,
+          padding: '34px 36px 38px', boxShadow: '0 30px 70px rgba(0,0,0,.4)',
+        }}>
+          <div style={{ display: 'flex', gap: 26, borderBottom: `1px solid ${C.line}`, marginBottom: 26 }}>
+            {[['login', 'Connexion'], ['register', 'Inscription']].map(([m, label]) => (
+              <div key={m} onClick={() => setMode(m)} style={{
+                fontFamily: "'Spectral', Georgia, serif", fontSize: 21, fontWeight: 600,
+                paddingBottom: 13, cursor: 'pointer',
+                color: mode === m ? C.ink : C.sub,
+                borderBottom: mode === m ? `2.5px solid ${C.terra}` : '2.5px solid transparent',
+                marginBottom: -1,
+              }}>{label}</div>
+            ))}
           </div>
-          <div style={s.field}>
-            <label style={s.label}>Mot de passe</label>
-            <input style={s.input} type="password" value={password} onChange={e => setPassword(e.target.value)} required />
-          </div>
-          {mode === 'register' && (
-            <div style={s.field}>
-              <label style={s.label}>Rôle</label>
-              <select style={s.select} value={role} onChange={e => setRole(e.target.value)}>
-                <option value="CLIENT">Client</option>
-                <option value="CHEF">Chef cuisinier</option>
-                <option value="LIVREUR">Livreur</option>
-              </select>
+
+          <form onSubmit={submit}>
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.sub, marginBottom: 8 }}>Adresse e-mail</div>
+              <input type="email" required value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
             </div>
-          )}
-          <button style={s.btn} type="submit">{mode === 'login' ? 'Se connecter' : "S'inscrire"}</button>
-          {error && <p style={s.error}>{error}</p>}
-        </form>
+            <div style={{ marginBottom: mode === 'register' ? 18 : 22 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: C.sub, marginBottom: 8 }}>Mot de passe</div>
+              <input type="password" required value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
+            </div>
+
+            {mode === 'register' && (
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: C.sub, marginBottom: 10 }}>Je suis…</div>
+                <div style={{ display: 'flex', gap: 9 }}>
+                  {roles.map(([value, label]) => (
+                    <div key={value} onClick={() => setRole(value)} style={{
+                      flex: 1, textAlign: 'center', padding: '12px 6px', borderRadius: 11, cursor: 'pointer',
+                      fontSize: 13.5, fontWeight: 600,
+                      border: role === value ? `1.5px solid ${C.terra}` : `1.5px solid ${C.line}`,
+                      background: role === value ? '#fbeee6' : C.cream,
+                      color: role === value ? C.terraDk : C.sub,
+                    }}>{label}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button type="submit" style={{
+              width: '100%', padding: 15, background: C.terra, color: '#fff', border: 'none',
+              borderRadius: 10, fontWeight: 600, fontSize: 15, letterSpacing: .2,
+              fontFamily: "'Archivo', system-ui, sans-serif", cursor: 'pointer',
+              boxShadow: '0 3px 10px rgba(194,86,47,.28)',
+            }}>
+              {mode === 'login' ? 'Se connecter' : "S'inscrire"}
+            </button>
+
+            {error && (
+              <div style={{ marginTop: 14, fontSize: 13, color: '#a83a26', textAlign: 'center', fontWeight: 600 }}>
+                {error}
+              </div>
+            )}
+
+            <div style={{ marginTop: 16, fontSize: 13, color: C.sub, textAlign: 'center' }}>
+              {mode === 'login' ? (
+                <>Pas encore de compte ?{' '}
+                  <span onClick={() => setMode('register')} style={{ color: C.terra, fontWeight: 600, cursor: 'pointer' }}>S'inscrire</span>
+                </>
+              ) : (
+                <>Un compte vous attend ?{' '}
+                  <span onClick={() => setMode('login')} style={{ color: C.terra, fontWeight: 600, cursor: 'pointer' }}>Connexion</span>
+                </>
+              )}
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   )
