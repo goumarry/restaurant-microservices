@@ -162,11 +162,23 @@ docker compose up --build
 
 L'ensemble des conteneurs démarre automatiquement dans le bon ordre (`depends_on`).
 
+### Comptes de test
+
+Au premier démarrage, trois comptes sont créés automatiquement dans la base `client-db` :
+
+| Rôle | Email | Mot de passe |
+|---|---|---|
+| Client | `client@test.com` | `password` |
+| Chef | `chef@test.com` | `password` |
+| Livreur | `livreur@test.com` | `password` |
+
+Ces comptes sont créés uniquement s'ils n'existent pas déjà — relancer les conteneurs sans `-v` ne les duplique pas.
+
 ### Interfaces disponibles
 
 | Interface | URL | Identifiants |
 |---|---|---|
-| Frontend | http://localhost:3000 | — |
+| Frontend | http://localhost:3000 | voir comptes de test ci-dessus |
 | API Gateway | http://localhost:9000 | — |
 | Adminer (BDD) | http://localhost:8080 | voir ci-dessous |
 | RabbitMQ Dashboard | http://localhost:15672 | `admin` / `password` |
